@@ -2,6 +2,10 @@ package org.springframework;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.bean.UserService;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+
+import static org.assertj.core.api.Java6Assertions.assertThat;
 
 /**
  * ApiTest
@@ -13,16 +17,18 @@ import org.springframework.bean.UserService;
 public class ApiTest {
 
     @Test
-    public void testBeanFactory() {
-        //初始化 beanFactory
-        BeanFactory beanFactory = new BeanFactory();
+    public void testBeanFactory(){
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-        //注册 bean
-        BeanDefinition beanDefinition = new BeanDefinition(new UserService());
+        BeanDefinition beanDefinition = new BeanDefinition(UserService.class);
         beanFactory.registerBeanDefinition("userService", beanDefinition);
 
-        //获取 bean
         UserService userService =(UserService) beanFactory.getBean("userService");
         userService.queryUserInfo();
+
+        // 4.第二次获取 bean from Singleton
+        UserService userService_singleton = (UserService) beanFactory.getBean("userService");
+        userService_singleton.queryUserInfo();
+        assertThat(userService).isEqualTo(userService_singleton);
     }
 }
