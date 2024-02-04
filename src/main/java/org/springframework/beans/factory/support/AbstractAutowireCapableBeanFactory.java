@@ -3,6 +3,8 @@ package org.springframework.beans.factory.support;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 
+import java.lang.reflect.Constructor;
+
 /**
  * AbstractAutowireCapableBeanFactory
  * 继承AbstractBeanFactory 并重写其中createBean方法
@@ -12,6 +14,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
  * @date 2024/2/4 11:43 AM
  */
 public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory {
+
+    private InstantiationStrategy instantiationStrategy = new CglibSubclassInstantiationStrategy();
 
     /**
      * 获取beanDefinition的类信息，然后根据类信息实例化bean
@@ -24,14 +28,47 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
      * @throws BeansException
      */
     @Override
-    protected Object createBean(String beanName, BeanDefinition beanDefinition) throws BeansException {
-        Object bean = null;
+    protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
+        Object bean;
         try {
-            bean = beanDefinition.getBeanClass().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            bean = createBeanInstance(beanDefinition, beanName, args);
+        } catch (Exception e) {
             throw new BeansException("Instantiation of bean failed", e);
         }
         addSingleton(beanName, bean);
         return bean;
+    }
+
+    protected Object createBeanInstance(BeanDefinition beanDefinition, String beanName, Object[] args) {
+        Constructor constructorToUse = null;
+        Class<?> beanClass = beanDefinition.getBeanClass();
+        Constructor<?>[] declaredConstructors = beanClass.getDeclaredConstructors();
+        for (Constructor ctor : declaredConstructors) {
+            Class[] parameterTypes = ctor.getParameterTypes();
+            if (null != args && ctor.getParameterTypes().length == args.length) {
+                boolean target = true;
+                for (int i = 0; i < args.length; ++i) {
+                    Class parameterType = parameterTypes[i];
+                    Object arg = args[i];
+                    if (!parameterType.equals(arg.getClass())) {
+                        target = false;
+                    }
+                }
+
+                if (target) {
+                    constructorToUse = ctor;
+                    break;
+                }
+            }
+        }
+        return getInstantiationStrategy().instantiate(beanDefinition, beanName, constructorToUse, args);
+    }
+
+    public InstantiationStrategy getInstantiationStrategy() {
+        return instantiationStrategy;
+    }
+
+    public void setInstantiationStrategy(InstantiationStrategy instantiationStrategy) {
+        this.instantiationStrategy = instantiationStrategy;
     }
 }
