@@ -13,10 +13,26 @@ import org.springframework.core.io.ResourceLoader;
  */
 public interface BeanDefinitionReader {
 
+    /**
+     * 定义beanDefinition注册表获取方法
+     *
+     * @return
+     */
     BeanDefinitionRegistry getRegistry();
 
+    /**
+     * 定义获取ResourceLoader方法
+     *
+     * @return
+     */
     ResourceLoader getResourceLoader();
 
+    /**
+     * 定义扫描bean的方法
+     *
+     * @param resource
+     * @throws BeansException
+     */
     void loadBeanDefinitions(Resource resource) throws BeansException;
 
     void loadBeanDefinitions(Resource... resources) throws BeansException;

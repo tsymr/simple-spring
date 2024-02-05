@@ -13,6 +13,11 @@ public interface ResourceLoader {
      */
     String CLASSPATH_URL_PREFIX = "classpath:";
 
+    /**
+     * 定义获取Resource
+     * @param location
+     * @return
+     */
     Resource getResource(String location);
 
 }

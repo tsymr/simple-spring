@@ -13,6 +13,9 @@ import org.springframework.core.io.ResourceLoader;
  */
 public  abstract class AbstractBeanDefinitionReader implements BeanDefinitionReader {
 
+    /**
+     * beanDefinition注册表（容器）
+     */
     private final BeanDefinitionRegistry registry;
 
     private ResourceLoader resourceLoader;

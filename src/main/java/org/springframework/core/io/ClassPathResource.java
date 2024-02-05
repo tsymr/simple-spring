@@ -29,9 +29,16 @@ public class ClassPathResource implements Resource {
     public ClassPathResource(String path, ClassLoader classLoader) {
         Assert.notNull(path, "Path must not be null");
         this.path = path;
+        // 设置classLoader 如果 classLoader为空，则从ClassUtils中获取默认的加载器
         this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
     }
 
+    /**
+     * 获取文件输入流
+     *
+     * @return
+     * @throws IOException
+     */
     @Override
     public InputStream getInputStream() throws IOException {
         InputStream is = classLoader.getResourceAsStream(path);

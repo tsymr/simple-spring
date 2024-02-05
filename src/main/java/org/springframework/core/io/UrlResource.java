@@ -15,21 +15,27 @@ import java.net.URLConnection;
  * @version 1.0.0
  * @date 2024/2/5 11:31 AM
  */
-public class UrlResource implements Resource{
+public class UrlResource implements Resource {
     private final URL url;
 
     public UrlResource(URL url) {
-        Assert.notNull(url,"URL must not be null");
+        Assert.notNull(url, "URL must not be null");
         this.url = url;
     }
+
+    /**
+     * 从网络获取文件输入流
+     *
+     * @return
+     * @throws IOException
+     */
     @Override
     public InputStream getInputStream() throws IOException {
         URLConnection con = this.url.openConnection();
         try {
             return con.getInputStream();
-        }
-        catch (IOException ex){
-            if (con instanceof HttpURLConnection){
+        } catch (IOException ex) {
+            if (con instanceof HttpURLConnection) {
                 ((HttpURLConnection) con).disconnect();
             }
             throw ex;

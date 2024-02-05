@@ -12,5 +12,11 @@ import java.io.InputStream;
  */
 public interface Resource {
 
+    /**
+     * 定义获取输入流
+     *
+     * @return
+     * @throws IOException
+     */
     InputStream getInputStream() throws IOException;
 }

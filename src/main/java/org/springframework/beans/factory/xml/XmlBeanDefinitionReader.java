@@ -26,6 +26,11 @@ import java.io.InputStream;
  */
 public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
+    /**
+     * 构造方法设置BeanDefinition容器
+     *
+     * @param registry
+     */
     public XmlBeanDefinitionReader(BeanDefinitionRegistry registry) {
         super(registry);
     }
@@ -35,16 +40,27 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
     }
 
 
-
+    /**
+     * 从Resource中扫描获取beanDefinition
+     *
+     * @param resource
+     * @throws BeansException
+     */
     @Override
     public void loadBeanDefinitions(Resource resource) throws BeansException {
-        try (InputStream inputStream = resource.getInputStream()){
+        try (InputStream inputStream = resource.getInputStream()) {
             doLoadBeanDefinitions(inputStream);
         } catch (IOException | ClassNotFoundException e) {
             throw new BeansException("IOException parsing XML document from " + resource, e);
         }
     }
 
+    /**
+     * 从多个Resource中扫描获取beanDefinition
+     *
+     * @param resources
+     * @throws BeansException
+     */
     @Override
     public void loadBeanDefinitions(Resource... resources) throws BeansException {
         for (Resource resource : resources) {
@@ -52,17 +68,33 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
         }
     }
 
+    /**
+     * 从路径扫描获取beanDefinition
+     *
+     * @param location
+     * @throws BeansException
+     */
     @Override
     public void loadBeanDefinitions(String location) throws BeansException {
         ResourceLoader resourceLoader = getResourceLoader();
         Resource resource = resourceLoader.getResource(location);
         loadBeanDefinitions(resource);
     }
+
+    /**
+     * 从输入流中读取xml信息获取bean的定义与属性和属性值
+     * @param inputStream
+     * @throws ClassNotFoundException
+     */
     protected void doLoadBeanDefinitions(InputStream inputStream) throws ClassNotFoundException {
+        // 读取xml
         Document doc = XmlUtil.readXML(inputStream);
+        // 获取xml根节点
         Element root = doc.getDocumentElement();
+        // 获取子节点列表
         NodeList childNodes = root.getChildNodes();
 
+        // 遍历子节点列表
         for (int i = 0; i < childNodes.getLength(); i++) {
             // 判断元素
             if (!(childNodes.item(i) instanceof Element)) continue;
@@ -74,14 +106,19 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
             String name = bean.getAttribute("name");
             String className = bean.getAttribute("class");
 
+            // 根据className获取类的Class对象
             Class<?> clazz = Class.forName(className);
-
+            // 设置bean的名称
             String beanName = StrUtil.isNotEmpty(id) ? id : name;
             if (StrUtil.isEmpty(beanName)) {
                 beanName = StrUtil.lowerFirst(clazz.getSimpleName());
             }
-            BeanDefinition beanDefinition = new BeanDefinition(clazz);
+            if (getRegistry().containsBeanDefinition(beanName)) {
+                throw new BeansException("Duplicate beanName[" + beanName + "] is not allowed");
+            }
 
+            BeanDefinition beanDefinition = new BeanDefinition(clazz);
+            // 遍历bean的子节点获取属性信息
             for (int j = 0; j < bean.getChildNodes().getLength(); j++) {
                 if (!(bean.getChildNodes().item(j) instanceof Element)) continue;
                 if (!"property".equals(bean.getChildNodes().item(j).getNodeName())) continue;
@@ -92,15 +129,12 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
                 String attrRef = property.getAttribute("ref");
                 // 获取属性值：引入对象、值对象
                 Object value = StrUtil.isNotEmpty(attrRef) ? new BeanReference(attrRef) : attrValue;
-                // 创建属性信息
+                // 创建并添加属性信息
                 PropertyValue propertyValue = new PropertyValue(attrName, value);
                 beanDefinition.getPropertyValues().addPropertyValue(propertyValue);
             }
 
-            if (getRegistry().containsBeanDefinition(beanName)) {
-                throw new BeansException("Duplicate beanName[" + beanName + "] is not allowed");
-            }
-            // 注册 BeanDefinition
+            // 注册 BeanDefinition 即向beanDefinitionMap添加BeanDefinition
             getRegistry().registerBeanDefinition(beanName, beanDefinition);
         }
     }

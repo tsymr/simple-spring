@@ -20,11 +20,24 @@ import java.util.Map;
 public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory implements BeanDefinitionRegistry {
     private final Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
+    /**
+     * 向beanDefinitionMap添加bean信息
+     *
+     * @param beanName
+     * @param beanDefinition
+     */
     @Override
     public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition) {
         beanDefinitionMap.put(beanName, beanDefinition);
     }
 
+    /**
+     * 根据 beanName 获取 bean信息
+     *
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     @Override
     public BeanDefinition getBeanDefinition(String beanName) throws BeansException {
         BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
@@ -32,11 +45,22 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
         return beanDefinition;
     }
 
+    /**
+     * 判断beanDefinitionMap是否已经存在该名称的BeanDefinition
+     *
+     * @param beanName
+     * @return
+     */
     @Override
     public boolean containsBeanDefinition(String beanName) {
         return beanDefinitionMap.containsKey(beanName);
     }
 
+    /**
+     * 获取beanDefinitionMap中的所有beanName
+     *
+     * @return
+     */
     @Override
     public String[] getBeanDefinitionNames() {
         return beanDefinitionMap.keySet().toArray(new String[0]);
