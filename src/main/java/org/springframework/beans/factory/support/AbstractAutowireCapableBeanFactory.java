@@ -44,12 +44,25 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         return bean;
     }
 
+    /**
+     * 创建beans实例
+     *
+     * @param beanDefinition bean的信息
+     * @param beanName       bean的名称
+     * @param args           参数
+     * @return
+     */
     protected Object createBeanInstance(BeanDefinition beanDefinition, String beanName, Object[] args) {
+        // 构造方法
         Constructor constructorToUse = null;
         Class<?> beanClass = beanDefinition.getBeanClass();
+        // 获取类的所有构造方法
         Constructor<?>[] declaredConstructors = beanClass.getDeclaredConstructors();
+        // 遍历构造方法 根据传入的参数 获取相应的构造方法
         for (Constructor ctor : declaredConstructors) {
+            // 获取构造方法的参数
             Class[] parameterTypes = ctor.getParameterTypes();
+            // 比较构造方法的参数和传入的参数是否一致，如果一致则为要获取的构造方法
             if (null != args && ctor.getParameterTypes().length == args.length) {
                 boolean target = true;
                 for (int i = 0; i < args.length; ++i) {
@@ -66,25 +79,40 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
                 }
             }
         }
+        // 通过构造方法获取实例
         return getInstantiationStrategy().instantiate(beanDefinition, beanName, constructorToUse, args);
     }
 
-    protected void applyPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition){
+    /**
+     * 设置bean属性值以及依赖注入
+     *
+     * @param beanName       beanName
+     * @param bean           bean对象
+     * @param beanDefinition bean信息
+     */
+    protected void applyPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
         try {
+            // 获取bean信息中的属性和属性值
             PropertyValues propertyValues = beanDefinition.getPropertyValues();
+            // 遍历属性
             for (PropertyValue propertyValue : propertyValues.getPropertyValueList()) {
+                // 获取属性名
                 String name = propertyValue.getName();
+                // 获取属性值
                 Object value = propertyValue.getValue();
-                if (value instanceof BeanReference){
+                // 如果属性为bean则通过getBean获取
+                if (value instanceof BeanReference) {
                     BeanReference beanReference = (BeanReference) value;
                     value = getBean(beanReference.getBeanName());
                 }
-                BeanUtil.setFieldValue(bean,name, value);
+                // 设置bean的属性相应的值
+                BeanUtil.setFieldValue(bean, name, value);
             }
         } catch (Exception e) {
             throw new BeansException("Error setting property values：" + beanName);
         }
     }
+
     public InstantiationStrategy getInstantiationStrategy() {
         return instantiationStrategy;
     }
